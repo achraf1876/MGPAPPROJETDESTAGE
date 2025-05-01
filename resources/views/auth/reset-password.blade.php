@@ -1,39 +1,110 @@
 <x-guest-layout>
-    <form method="POST" action="{{ route('password.store') }}">
-        @csrf
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <div class="mgpap-header p-4 rounded-top text-center">
+                    <h1 class="h4 mb-0">
+                        <i class="bi bi-shield-lock me-2"></i>
+                        {{ __('Réinitialisation du mot de passe') }}
+                    </h1>
+                </div>
 
-        <!-- Password Reset Token -->
-        <input type="hidden" name="token" value="{{ $request->route('token') }}">
+                <div class="card shadow-sm border-0 rounded-bottom">
+                    <div class="card-body p-4">
+                        <form method="POST" action="{{ route('password.store') }}">
+                            @csrf
 
-        <!-- Email Address -->
-        <div>
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email', $request->email)" required autofocus autocomplete="username" />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
+                            <!-- Password Reset Token -->
+                            <input type="hidden" name="token" value="{{ $request->route('token') }}">
+
+                            <!-- Email Address -->
+                            <div class="mb-4">
+                                <x-input-label for="email" :value="__('Email')" class="form-label text-muted" />
+                                <x-text-input id="email" 
+                                             class="form-control bg-light border-0 py-2 px-3 rounded" 
+                                             type="email" 
+                                             name="email" 
+                                             :value="old('email', $request->email)" 
+                                             required 
+                                             autofocus 
+                                             autocomplete="username" />
+                                <x-input-error :messages="$errors->get('email')" class="mt-2 text-danger small" />
+                            </div>
+
+                            <!-- Password -->
+                            <div class="mb-4">
+                                <x-input-label for="password" :value="__('Mot de passe')" class="form-label text-muted" />
+                                <x-text-input id="password" 
+                                             class="form-control bg-light border-0 py-2 px-3 rounded" 
+                                             type="password" 
+                                             name="password" 
+                                             required 
+                                             autocomplete="new-password" />
+                                <x-input-error :messages="$errors->get('password')" class="mt-2 text-danger small" />
+                            </div>
+
+                            <!-- Confirm Password -->
+                            <div class="mb-4">
+                                <x-input-label for="password_confirmation" :value="__('Confirmer le mot de passe')" class="form-label text-muted" />
+                                <x-text-input id="password_confirmation" 
+                                             class="form-control bg-light border-0 py-2 px-3 rounded"
+                                             type="password"
+                                             name="password_confirmation" 
+                                             required 
+                                             autocomplete="new-password" />
+                                <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2 text-danger small" />
+                            </div>
+
+                            <div class="d-grid mt-4">
+                                <x-primary-button class="btn btn-mgpap py-2">
+                                    <i class="bi bi-arrow-clockwise me-2"></i>
+                                    {{ __('Réinitialiser le mot de passe') }}
+                                </x-primary-button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
+    </div>
 
-        <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" :value="__('Password')" />
-            <x-text-input id="password" class="block mt-1 w-full" type="password" name="password" required autocomplete="new-password" />
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
-        </div>
-
-        <!-- Confirm Password -->
-        <div class="mt-4">
-            <x-input-label for="password_confirmation" :value="__('Confirm Password')" />
-
-            <x-text-input id="password_confirmation" class="block mt-1 w-full"
-                                type="password"
-                                name="password_confirmation" required autocomplete="new-password" />
-
-            <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
-        </div>
-
-        <div class="flex items-center justify-end mt-4">
-            <x-primary-button>
-                {{ __('Reset Password') }}
-            </x-primary-button>
-        </div>
-    </form>
+    <style>
+        :root {
+            --mgpap-primary: #1a5f7a;
+            --mgpap-secondary: #57c5b6;
+            --mgpap-light: #f8f9fa;
+        }
+        
+        .mgpap-header {
+            background-color: var(--mgpap-primary);
+            color: white;
+        }
+        
+        .btn-mgpap {
+            background-color: var(--mgpap-primary);
+            color: white;
+            border: none;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-mgpap:hover {
+            background-color: #13455a;
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .form-control {
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus {
+            box-shadow: 0 0 0 0.25rem rgba(26, 95, 122, 0.25);
+            border-color: var(--mgpap-secondary);
+        }
+        
+        .card {
+            border-radius: 0 0 0.5rem 0.5rem;
+        }
+    </style>
 </x-guest-layout>

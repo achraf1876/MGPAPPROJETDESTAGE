@@ -10,6 +10,8 @@ class Demande extends Model
         'type', 'description', 'date_reception', 'date_envoi', 'date_reponse', 'reponse', 
         'observation', 'fichier', 'agent_id', 'entite_id', 'user_id'
     ];
+    
+
 
     // Relations
     public function agent()

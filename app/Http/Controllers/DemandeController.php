@@ -8,8 +8,7 @@ use App\Models\Entite;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-use Barryvdh\DomPDF\Facade as PDF;
-
+use Barryvdh\DomPDF\Facade\Pdf; // Notez le "P" majuscule
 
 
 class DemandeController extends Controller
@@ -102,21 +101,41 @@ class DemandeController extends Controller
     // Dans le contrôleur BordereauController
 
 
-    public function genererBordereau()
+public function genererBordereau(Request $request)
 {
-    try {
-        // Récupérer les demandes et compter
-        $demandes = Demande::all();
-        $count = $demandes->count();
+    $demandesIds = $request->input('demandes', []);
     
-        // Générer le PDF
-        $pdf = PDF::loadView('bordereau.generated', compact('demandes', 'count'));
+    $demandes = Demande::with(['agent', 'entite'])
+        ->whereIn('id', $demandesIds)
+        ->get();
     
-        // Retourner le PDF au navigateur
-        return $pdf->download('bordereau.pdf');
-    } catch (\Exception $e) {
-        \Log::error("Error generating bordereau: " . $e->getMessage());
-        return response()->json(['error' => 'An error occurred while generating the bordereau.'], 500);
-    }
-}  
+    $pdf = PDF::loadView('bordereau.pdf', [
+        'demandes' => $demandes,
+        'dateGeneration' => now()->format('d/m/Y H:i')
+    ]);
+    
+    return $pdf->download('bordereau-'.now()->format('Ymd-His').'.pdf');
+}
+
+public function delete(Request $request)
+{
+    $demandesIds = $request->input('demandes_delete', []);
+    
+    // Marquer les demandes comme archivées au lieu de les supprimer
+    Demande::whereIn('id', $demandesIds)
+           ->update(['archived' => true]);
+    
+    return redirect()->route('demandes.index')
+        ->with('success', 'Les demandes sélectionnées ont été archivées.');
+}
+
+public function historique()
+{
+    $demandes = Demande::with(['agent', 'entite'])
+        ->where('archived', true)
+        ->orderBy('updated_at', 'desc')
+        ->get();
+    
+    return view('demandes.historique', compact('demandes'));
+}
 }

@@ -5,33 +5,84 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ config('app.name', 'Laravel') }}</title>
+        <title>{{ config('app.name', 'MGPAP') }}</title>
+
+        <!-- Bootstrap CSS -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+        
+        <!-- Bootstrap Icons -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+        <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
+
+        <style>
+            :root {
+                --mgpap-primary: #1a5f7a;
+                --mgpap-secondary: #57c5b6;
+                --mgpap-light: #f8f9fa;
+                --mgpap-dark: #212529;
+            }
+            
+            body {
+                font-family: 'Instrument Sans', sans-serif;
+                background-color: var(--mgpap-light);
+            }
+            
+            .bg-mgpap-primary {
+                background-color: var(--mgpap-primary) !important;
+            }
+            
+            .text-mgpap-primary {
+                color: var(--mgpap-primary) !important;
+            }
+            
+            .btn-mgpap {
+                background-color: var(--mgpap-primary);
+                color: white;
+                border-radius: 4px;
+                padding: 8px 20px;
+                font-weight: 500;
+            }
+            
+            .btn-mgpap:hover {
+                background-color: #13455a;
+                color: white;
+            }
+        </style>
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="font-sans antialiased">
-        <div class="min-h-screen bg-gray-100">
+    <body>
+        <div class="d-flex flex-column min-vh-100">
             @include('layouts.navigation')
 
             <!-- Page Heading -->
             @isset($header)
-                <header class="bg-white shadow">
-                    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+                <header class="bg-white shadow-sm py-3">
+                    <div class="container">
                         {{ $header }}
                     </div>
                 </header>
             @endisset
 
             <!-- Page Content -->
-            <main>
-    {{ $slot ?? 'Default content here' }}
-</main>
+            <main class="flex-grow-1 py-4">
+                <div class="container">
+                    {{ $slot }}
+                </div>
+            </main>
 
+            <footer class="bg-mgpap-primary text-white py-3 mt-auto">
+                <div class="container text-center">
+                    <p class="mb-0">&copy; {{ date('Y') }} MGPAP. Tous droits réservés.</p>
+                </div>
+            </footer>
         </div>
+
+        <!-- Bootstrap JS -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     </body>
 </html>

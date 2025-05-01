@@ -16,8 +16,6 @@ public function run()
 {
     $this->call([
         EntiteSeeder::class,
-        AgentSeeder::class,
-        DemandeSeeder::class,
     ]);
 }
 
