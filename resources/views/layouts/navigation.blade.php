@@ -101,8 +101,8 @@
 
     <style>
         :root {
-            --mgpap-primary: #1a5f7a;
-            --mgpap-secondary: #57c5b6;
+            --mgpap-primary:rgb(115, 147, 160);
+            --mgpap-secondary:rgb(167, 199, 235);
             --mgpap-light: #f8f9fa;
         }
         

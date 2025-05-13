@@ -215,12 +215,19 @@
                 </div>
             </div>
         </div>
+ 
 
         <div class="d-flex justify-content-between mt-4">
             <a href="{{ route('demandes.index') }}" class="btn btn-outline-secondary">
                 <i class="bi bi-arrow-left me-2"></i>
                 Retour à la liste
             </a>
+            <div class="text-end mb-3">
+    <a href="{{ route('demandes.edit', $demande->id) }}" class="btn btn-warning">
+        <i class="bi bi-pencil-square me-1"></i>
+        Modifier cette demande
+    </a>
+</div>
             <a href="{{ route('dashboard') }}" class="btn btn-mgpap">
                 <i class="bi bi-speedometer2 me-2"></i>
                 Retour au dashboard

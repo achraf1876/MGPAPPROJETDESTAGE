@@ -6,13 +6,15 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
-    public function up()
+    public function up(): void
     {
         Schema::create('demandes', function (Blueprint $table) {
             $table->id();
+
+            // Relation avec bordereaux (UUID)
+            $table->uuid('bordereau_id')->nullable(); // Utilisation de uuid pour la clé étrangère
+            $table->foreign('bordereau_id')->references('id')->on('bordereaux')->onDelete('set null');
+
             $table->string('type');
             $table->text('description')->nullable();
             $table->date('date_reception')->nullable();
@@ -20,18 +22,17 @@ return new class extends Migration
             $table->date('date_reponse')->nullable();
             $table->string('reponse')->nullable();
             $table->text('observation')->nullable();
-            $table->string('fichier')->nullable(); // path du fichier
-            $table->foreignId('agent_id')->constrained()->onDelete('cascade');
-            $table->foreignId('entite_id')->constrained()->onDelete('cascade');
-            $table->foreignId('user_id')->constrained()->onDelete('cascade'); // celui qui crée la demande
-            $table->string('bordereau_id')->nullable(); // Ajout de la colonne bordereau_id
+            $table->string('fichier')->nullable();
+
+            // Autres relations
+            $table->foreignId('agent_id')->constrained('agents')->onDelete('cascade');
+            $table->foreignId('entite_id')->constrained('entites')->onDelete('cascade');
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('demandes');

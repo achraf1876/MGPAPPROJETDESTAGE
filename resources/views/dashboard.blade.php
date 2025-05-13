@@ -1,6 +1,4 @@
 <x-app-layout>
-    
-
     <div class="container py-5">
         <div class="card shadow-sm rounded-3">
             <div class="card-body p-4">
@@ -20,12 +18,14 @@
                         <i class="bi bi-list-check me-2"></i>
                         Liste des demandes
                     </a>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    @push('styles')
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    @endpush
+                    <a href="{{ route('bordereaux.index') }}" class="btn btn-info btn-lg py-2 text-white">
+    <i class="bi bi-file-text me-2"></i>
+    Bordereau
+</a>
+                    <a href="{{ route('bordereaux.afficher') }}" class="btn btn-outline-primary btn-lg py-2">
+    <i class="bi bi-file-text me-2"></i>
+    afficher Bordereau
+</a>
+
 </x-app-layout>

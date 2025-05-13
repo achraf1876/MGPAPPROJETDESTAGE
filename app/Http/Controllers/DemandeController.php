@@ -5,34 +5,34 @@ namespace App\Http\Controllers;
 use App\Models\Demande;
 use App\Models\Agent;
 use App\Models\Entite;
+use App\Models\Bordereau;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
-use Barryvdh\DomPDF\Facade\Pdf; // Notez le "P" majuscule
-
 
 class DemandeController extends Controller
 {
-    // Afficher la liste des demandes
     public function index()
+    {
+        // Récupérer toutes les demandes avec pagination
+        $demandes = Demande::paginate(10);
+        return view('demandes.index', compact('demandes'));
+    }
+    public function generateBordereau()
 {
-    $demandes = Demande::all(); // or any other query to get the data
-    return view('demandes.index', compact('demandes'));
+    $demandes = Demande::all(); // Example of fetching all demandes
+    return view('your-view-name', compact('demandes'));
 }
 
-
-    // Afficher le formulaire de création
     public function create()
     {
-        // Récupère toutes les entités
+        // Récupérer toutes les entités pour le formulaire de création
         $entites = Entite::all();
         return view('demandes.create', compact('entites'));
     }
 
-    // Enregistrer une nouvelle demande
     public function store(Request $request)
     {
-        // Validation des données
+        // Valider les données envoyées
         $request->validate([
             'type' => 'required|string|max:255',
             'nom' => 'required|string|max:255',
@@ -53,7 +53,7 @@ class DemandeController extends Controller
             'entite_id' => 'required|exists:entites,id',
         ]);
 
-        // Création de l'agent lié à la demande
+        // Créer un agent
         $agent = Agent::create([
             'nom' => $request->nom,
             'prenom' => $request->prenom,
@@ -67,7 +67,7 @@ class DemandeController extends Controller
             'id_users' => Auth::id(),
         ]);
 
-        // Enregistrement de la demande
+        // Créer une nouvelle demande
         $demande = new Demande();
         $demande->type = $request->type;
         $demande->description = $request->description;
@@ -76,66 +76,125 @@ class DemandeController extends Controller
         $demande->date_reponse = $request->date_reponse;
         $demande->reponse = $request->reponse;
         $demande->observation = $request->observation;
-        $demande->agent_id = $agent->id;  // Lier l'agent à la demande
+        $demande->agent_id = $agent->id;
         $demande->entite_id = $request->entite_id;
         $demande->user_id = Auth::id();
 
-        // Vérifier si un fichier a été téléchargé et l'enregistrer
+        // Si un fichier est téléchargé, le traiter
         if ($request->hasFile('fichier')) {
-            $demande->fichier = $request->file('fichier')->store('demandes', 'public');
+            $filename = time() . '_' . $request->file('fichier')->getClientOriginalName();
+            $path = $request->file('fichier')->storeAs('demandes', $filename, 'public');
+            $demande->fichier = $path;
         }
 
-        // Sauvegarde de la demande dans la base de données
+        // Sauvegarder la demande
         $demande->save();
 
         // Redirection vers la liste des demandes avec un message de succès
         return redirect()->route('demandes.index')->with('success', 'Demande créée avec succès.');
     }
 
-    // Afficher les détails d'une demande
     public function show($id)
     {
+        // Afficher une demande spécifique
         $demande = Demande::findOrFail($id);
         return view('demandes.show', compact('demande'));
     }
-    // Dans le contrôleur BordereauController
 
 
-public function genererBordereau(Request $request)
+
+ 
+
+    public function historique()
+    {
+        // Récupérer l'historique des demandes archivées
+        $demandes = Demande::with(['agent', 'entite'])
+            ->where('archived', true)
+            ->orderBy('updated_at', 'desc')
+            ->get();
+
+        return view('demandes.historique', compact('demandes'));
+    }
+    public function edit($id)
 {
-    $demandesIds = $request->input('demandes', []);
-    
-    $demandes = Demande::with(['agent', 'entite'])
-        ->whereIn('id', $demandesIds)
-        ->get();
-    
-    $pdf = PDF::loadView('bordereau.pdf', [
-        'demandes' => $demandes,
-        'dateGeneration' => now()->format('d/m/Y H:i')
+    $demande = Demande::findOrFail($id);
+    $agents = Agent::all();
+    $entites = Entite::all();
+
+    return view('demandes.edit', compact('demande', 'agents', 'entites'));
+}
+public function destroy($id)
+{
+    // Rechercher la demande par son ID
+    $demande = Demande::findOrFail($id);
+
+    // Supprimer la demande
+    $demande->delete();
+
+    // Rediriger avec un message de succès
+    return redirect()->route('demandes.index')->with('success', 'Demande supprimée avec succès');
+}
+
+
+public function update(Request $request, $id)
+{
+    $demande = Demande::findOrFail($id);
+
+    // Mise à jour de la demande
+    $demande->update([
+        'type' => $request->type,
+        'date_reception' => $request->date_reception,
+        'date_envoi' => $request->date_envoi,
+        'date_reponse' => $request->date_reponse,
+        'description' => $request->description,
+        'reponse' => $request->reponse,
+        'observation' => $request->observation,
+        'entite_id' => $request->entite_id, // ne pas oublier ce champ
     ]);
-    
-    return $pdf->download('bordereau-'.now()->format('Ymd-His').'.pdf');
+
+    // Mise à jour fichier si existe
+    if ($request->hasFile('fichier')) {
+        $path = $request->file('fichier')->store('fichiers', 'public');
+        $demande->fichier = $path;
+        $demande->save();
+    }
+
+    // Mise à jour de l'agent
+    if ($demande->agent) {
+        $demande->agent->update([
+            'nom' => $request->agent_nom,
+            'prenom' => $request->agent_prenom,
+            'telephone' => $request->agent_telephone,
+            'email_professionnelle' => $request->agent_email_pro, // corriger nom du champ
+            'email_personnelle' => $request->agent_email_perso,    // corriger nom du champ
+            'cin' => $request->agent_cin,
+            'matricule' => $request->agent_matricule,
+            'code_esquif' => $request->agent_code_esquif,
+        ]);
+    }
+
+    // Ne pas mettre à jour entite ici, juste le rattacher par son ID
+    // Supprimer cette section :
+    // if ($demande->entite) {
+    //     $demande->entite->update([
+    //         'nom' => $request->entite_nom,
+    //     ]);
+    // }
+
+    return redirect()->route('demandes.show', $demande->id)
+        ->with('success', 'Demande mise à jour avec succès.');
 }
 
-public function delete(Request $request)
-{
-    $demandesIds = $request->input('demandes_delete', []);
-    
-    // Marquer les demandes comme archivées au lieu de les supprimer
-    Demande::whereIn('id', $demandesIds)
-           ->update(['archived' => true]);
-    
-    return redirect()->route('demandes.index')
-        ->with('success', 'Les demandes sélectionnées ont été archivées.');
-}
 
-public function historique()
-{
-    $demandes = Demande::with(['agent', 'entite'])
-        ->where('archived', true)
-        ->orderBy('updated_at', 'desc')
-        ->get();
+
+
+    public function showDemandeForm()
+    {
+        $demandes = Demande::all(); // Fetch all demandes from the database
+        dd($demandes); // This will dump and die to show if data is being fetched correctly.
+        return view('bordereaux.index', compact('demandes'));
+    }
     
-    return view('demandes.historique', compact('demandes'));
-}
+
+    
 }

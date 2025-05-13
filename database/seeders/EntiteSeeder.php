@@ -26,7 +26,7 @@ class EntiteSeeder extends Seeder
         Entite::create([
             'nom' => 'Agence MGPAP fes',
             'type_rattachement' => 'Agence',
-            'ville' => 'Casablanca',
+            'ville' => 'fes',
         ]);
     }
 }

@@ -19,9 +19,9 @@
 
         <style>
             :root {
-                --mgpap-primary: #1a5f7a;
-                --mgpap-secondary: #57c5b6;
-                --mgpap-light: #f8f9fa;
+                --mgpap-primary:rgb(100, 202, 165);
+                --mgpap-secondary:rgb(40, 53, 51);
+                --mgpap-light:rgb(92, 123, 153);
                 --mgpap-dark: #212529;
             }
             

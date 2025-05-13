@@ -33,18 +33,6 @@
                         @include('profile.partials.update-password-form')
                     </div>
                 </div>
-
-                <!-- Section Suppression compte -->
-                <div class="card border-0 shadow-sm rounded-3">
-                    <div class="card-header bg-mgpap-primary bg-opacity-10 py-3">
-                        <h3 class="h5 fw-bold mb-0 text-mgpap-primary">
-                            <i class="bi bi-trash3 me-2"></i>Suppression du compte
-                        </h3>
-                    </div>
-                    <div class="card-body p-4">
-                        @include('profile.partials.delete-user-form')
-                    </div>
-                </div>
             </div>
         </div>
     </div>

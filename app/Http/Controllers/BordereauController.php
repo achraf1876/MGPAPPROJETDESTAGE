@@ -6,74 +6,82 @@ use Illuminate\Http\Request;
 use App\Models\Bordereau;
 use App\Models\Demande;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class BordereauController extends Controller
 {
-    // Générer un bordereau (avec possibilité de supprimer les demandes après génération)
-    public function generer(Request $request)
+    public function __construct()
     {
-        // Validation des demandes sélectionnées
+        $this->middleware('auth');
+    }
+
+    // Afficher la liste des demandes
+    public function index()
+    {
+        $demandes = Demande::all();
+        return view('bordereaux.index', compact('demandes'));
+    }
+
+    // Générer un bordereau
+    public function generate(Request $request)
+    {
+        if (!Auth::check()) {
+            return response()->json(['error' => 'Utilisateur non authentifié.'], 401);
+        }
+
         $request->validate([
             'demandes' => 'required|array',
+            'demandes.*' => 'exists:demandes,id',
         ]);
 
         $user = Auth::user();
-        $date = Carbon::now()->format('Y-m-d');
-        $todayCount = Bordereau::whereDate('created_at', $date)->count();
-        $id = 'BD_' . $date . '_' . ($todayCount + 1);
 
-        $date_reception = Carbon::now();
-        $date_depot = Carbon::now()->addDays(2);
+        $bordereau = new Bordereau();
+        $bordereau->user_id = $user->id;
 
-        DB::beginTransaction();
+        $currentDate = now()->format('Y-m-d');
+        $count = Bordereau::whereDate('created_at', today())->count() + 1;
+        $bordereau->id = 'BD_' . $currentDate . '-' . $count;
 
-        try {
-            // Création du bordereau
-            $bordereau = Bordereau::create([
-                'id' => $id,
-                'user_id' => $user->id,
-                'date_reception' => $date_reception,
-                'date_depot' => $date_depot,
-                'demandes_ids' => json_encode($request->demandes),
-            ]);
+        $bordereau->save();
 
-            // Supprimer les demandes après génération
-            Demande::whereIn('id', $request->demandes)->delete();
-
-            DB::commit();
-
-            return redirect()->route('bordereau.historique')->with('success', 'Bordereau généré avec succès.');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return redirect()->back()->with('error', 'Erreur lors de la génération du bordereau.');
+        foreach ($request->demandes as $demandeId) {
+            $demande = Demande::find($demandeId);
+            if ($demande) {
+                $demande->bordereau_id = $bordereau->id;
+                $demande->save();
+            }
         }
+
+        return response()->json(['message' => 'Bordereau généré avec succès.']);
     }
 
-    // Afficher l'historique des bordereaux
-   
+    // Afficher les bordereaux
+    public function afficher()
+    {
+        $bordereaux = Bordereau::with('demandes.agent')->get();
+        return view('bordereaux.afficher', compact('bordereaux'));
+    }
 
-    // Afficher les détails d'un bordereau spécifique
-    public function show($id)
+    // Télécharger le PDF
+    public function download($id)
+{
+    $bordereau = Bordereau::with(['demandes.agent', 'demandes.entite'])->findOrFail($id);
+    $demandes = $bordereau->demandes;
+
+    $pdf = Pdf::loadView('pdf.bordereau', compact('demandes', 'bordereau'));
+
+    return $pdf->download("bordereau_{$id}.pdf");
+}
+
+
+    // Supprimer un bordereau
+    public function destroy($id)
     {
         $bordereau = Bordereau::findOrFail($id);
+        $bordereau->demandes()->update(['bordereau_id' => null]);
+        $bordereau->delete();
 
-        // Récupérer les demandes liés au bordereau
-        $demandes = [];
-        if ($bordereau->demandes_ids) {
-            $demandesIds = json_decode($bordereau->demandes_ids, true);
-            $demandes = Demande::with(['agent', 'entite'])->whereIn('id', $demandesIds)->get();
-        }
-
-        return view('bordereau.show', compact('bordereau', 'demandes'));
-    }
-    public function historique()
-    {
-        // Fetch the demande data (replace with your actual logic)
-        $demande = Demande::find(1); // Example: Retrieve a specific demande, adjust as needed
-    
-        // Pass the demande to the view
-        return view('bordereau.historique', compact('demande'));
+        return redirect()->back()->with('success', 'Bordereau supprimé avec succès.');
     }
 }
